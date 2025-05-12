@@ -4,9 +4,21 @@ import { v4 as uuidv4 } from 'uuid';
 
 class Users {
   private users: User[] = [];
+  private static instance: Users;
 
   constructor() {
     this.users = [...mockUsers];
+  }
+
+  public static getInstance(): Users {
+    if (!Users.instance) {
+      Users.instance = new Users();
+    }
+    return Users.instance;
+  }
+
+  public synchronizationDB(users: User[]): void {
+    this.users = users;
   }
 
   getAllUsers(): User[] {
@@ -45,4 +57,4 @@ class Users {
   }
 }
 
-export const usersDB = new Users();
+export const usersDB = Users.getInstance();
