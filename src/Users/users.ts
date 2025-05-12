@@ -1,5 +1,6 @@
+import { CreateUserDto, User } from '../types';
 import { mockUsers } from './mock';
-import { User } from './types/user.types';
+import { v4 as uuidv4 } from 'uuid';
 
 class Users {
   private users: User[] = [];
@@ -16,9 +17,13 @@ class Users {
     return this.users.find((user) => user.id === id);
   }
 
-  addUser(user: User): User {
-    this.users.push(user);
-    return user;
+  addUser(userData: CreateUserDto): User {
+    const newUser: User = {
+      id: uuidv4(),
+      ...userData
+    };
+    this.users.push(newUser);
+    return newUser;
   }
 
   updateUser(id: string, updatedUser: User): User | undefined {
