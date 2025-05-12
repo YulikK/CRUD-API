@@ -1,7 +1,7 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import { usersDB } from '../Users/users';
 import { parseAndValidateBody } from '../utils/validation';
-import { isValidUUID } from '../utils/validation';
+import { isValidUUID, isValidUserData } from '../utils/validation';
 import { ERROR_MSG, METHODS, STATUS_CODES } from '../constants';
 import { sendResponse } from '../utils/response';
 
@@ -33,14 +33,14 @@ export class UsersController {
 
       case METHODS.POST:
         if (url === this.API_BASE) {
-          return await this.createUser(req, res);
+          return this.createUser(req, res);
         }
         break;
 
       case METHODS.PUT:
         if (url.startsWith(`${this.API_BASE}/`)) {
           const userId = url.split(`${this.API_BASE}/`)[1];
-          return await this.updateUser(req, res, userId);
+          return this.updateUser(req, res, userId);
         }
         break;
 
@@ -90,6 +90,12 @@ export class UsersController {
       });
     }
 
+    if (!isValidUserData(result.data)) {
+      return sendResponse(res, STATUS_CODES.BAD_REQUEST, {
+        message: ERROR_MSG.INVALID_DATA_TYPES
+      });
+    }
+
     const newUser = usersDB.addUser(result.data);
     sendResponse(res, STATUS_CODES.CREATED, newUser);
   }
@@ -117,6 +123,12 @@ export class UsersController {
     if (!result.isValid) {
       return sendResponse(res, STATUS_CODES.BAD_REQUEST, {
         message: result.error
+      });
+    }
+
+    if (!isValidUserData(result.data)) {
+      return sendResponse(res, STATUS_CODES.BAD_REQUEST, {
+        message: ERROR_MSG.INVALID_DATA_TYPES
       });
     }
 
