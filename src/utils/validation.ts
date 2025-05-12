@@ -1,5 +1,10 @@
 import { ERROR_MSG } from '../constants';
-import { CreateUserDto, ValidationResult } from '../types';
+import { IncomingMessage } from 'http';
+import {
+  CreateUserDto,
+  RequestValidationResult,
+  ValidationResult
+} from '../types';
 
 export const isValidUUID = (uuid: string): boolean => {
   const uuidRegex =
@@ -33,4 +38,41 @@ export const validateUserData = (data: unknown): ValidationResult => {
     isValid: true,
     data: userData
   };
+};
+
+export const parseAndValidateBody = async (
+  req: IncomingMessage
+): Promise<RequestValidationResult> => {
+  return new Promise((resolve) => {
+    let body = '';
+
+    req.on('data', (chunk) => {
+      body += chunk.toString();
+    });
+
+    req.on('end', () => {
+      try {
+        const parsedData = JSON.parse(body);
+        const validationResult = validateUserData(parsedData);
+
+        if (!validationResult.isValid) {
+          resolve({
+            isValid: false,
+            error: validationResult.message
+          });
+          return;
+        }
+
+        resolve({
+          isValid: true,
+          data: validationResult.data
+        });
+      } catch (error) {
+        resolve({
+          isValid: false,
+          error: ERROR_MSG.INVALID_JSON
+        });
+      }
+    });
+  });
 };
